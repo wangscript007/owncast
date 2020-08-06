@@ -29,6 +29,8 @@ class OwncastPlayer {
     };
 
     this.vjsPlayer = videojs(VIDEO_ID, VIDEO_OPTIONS);
+    videojs.log.level('all');
+
     this.addAirplay();
     this.vjsPlayer.ready(this.handleReady);
   }
@@ -52,6 +54,9 @@ class OwncastPlayer {
 
   handleReady() {
     this.log('on Ready');
+    this.enablePlayerLogging(this.vjsPlayer);
+
+    videojs.log.level('debug');
     this.vjsPlayer.on('error', this.handleError);
     this.vjsPlayer.on('playing', this.handlePlaying);
     this.vjsPlayer.on('ended', this.handleEnded);
@@ -62,12 +67,48 @@ class OwncastPlayer {
     }
   }
 
+  enablePlayerLogging(player) {
+    videojs.log.level('debug')
+    player.tech().on('usage', (e) => {
+      console.log(e);
+    });
+
+    let tracks = player.textTracks();
+    let segmentMetadataTrack;
+
+    for (let i = 0; i < tracks.length; i++) {
+      if (tracks[i].label === 'segment-metadata') {
+        segmentMetadataTrack = tracks[i];
+      }
+    }
+
+    let previousPlaylist;
+
+    if (segmentMetadataTrack) {
+      segmentMetadataTrack.on('cuechange', function () {
+        let activeCue = segmentMetadataTrack.activeCues[0];
+
+        if (activeCue) {
+          if (previousPlaylist !== activeCue.value.playlist) {
+            console.log('Switched from rendition ' + previousPlaylist +
+              ' to rendition ' + activeCue.value.playlist);
+          }
+          previousPlaylist = activeCue.value.playlist;
+        }
+      });
+    }
+  }
+
   handlePlaying() {
     this.log('on Playing');
     if (this.appPlayerPlayingCallback) {
       // start polling
       this.appPlayerPlayingCallback();
     }
+
+    setTimeout(function () {
+      console.log(videojs.log.history())
+    }, 5000)
   }
 
   handleEnded() {
@@ -76,6 +117,7 @@ class OwncastPlayer {
       this.appPlayerEndedCallback();
     }
     this.setPoster();
+    console.log(videojs.log.history())
   }
 
   handleError(e) {
@@ -83,6 +125,7 @@ class OwncastPlayer {
     if (this.appPlayerEndedCallback) {
       this.appPlayerEndedCallback();
     }
+    console.log(videojs.log.history())
   }
 
   setPoster() {
