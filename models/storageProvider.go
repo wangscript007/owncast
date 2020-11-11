@@ -4,6 +4,7 @@ package models
 type StorageProvider interface {
 	Setup() error
 	Save(filePath string, retryCount int) (string, error)
+	Cleanup()
 
 	SegmentWritten(localFilePath string)
 	VariantPlaylistWritten(localFilePath string)

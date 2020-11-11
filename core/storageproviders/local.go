@@ -2,7 +2,6 @@ package storageproviders
 
 import (
 	"path/filepath"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -14,23 +13,16 @@ import (
 type LocalStorage struct {
 }
 
-// Cleanup old public HLS content every N min from the webroot.
-var _onlineCleanupTicker *time.Ticker
-
 // Setup configures this storage provider
 func (s *LocalStorage) Setup() error {
-	// NOTE: This cleanup timer will have to be disabled to support recordings in the future
-	// as all HLS segments have to be publicly available on disk to keep a recording of them.
-	_onlineCleanupTicker = time.NewTicker(1 * time.Minute)
-	go func() {
-		for {
-			select {
-			case <-_onlineCleanupTicker.C:
-				ffmpeg.CleanupOldContent(config.PublicHLSStoragePath)
-			}
-		}
-	}()
 	return nil
+}
+
+// NOTE: This cleanup timer will have to be disabled to support recordings in the future
+// as all HLS segments have to be publicly available on disk to keep a recording of them.
+
+func (s *LocalStorage) Cleanup() {
+	ffmpeg.CleanupOldContent(config.PublicHLSStoragePath)
 }
 
 // SegmentWritten is called when a single segment of video is written

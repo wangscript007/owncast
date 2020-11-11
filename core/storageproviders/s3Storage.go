@@ -65,6 +65,10 @@ func (s *S3Storage) Setup() error {
 	return nil
 }
 
+func (s *S3Storage) Cleanup() {
+	// no-op
+}
+
 // SegmentWritten is called when a single segment of video is written
 func (s *S3Storage) SegmentWritten(localFilePath string) {
 	index := utils.GetIndexFromFilePath(localFilePath)

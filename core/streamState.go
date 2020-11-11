@@ -151,11 +151,9 @@ func StopOfflineCleanupTimer() {
 func startOnlineCleanupTimer() {
 	_onlineCleanupTicker = time.NewTicker(1 * time.Minute)
 	go func() {
-		for {
-			select {
-			case <-_onlineCleanupTicker.C:
-				ffmpeg.CleanupOldContent(config.PrivateHLSStoragePath)
-			}
+		for range _onlineCleanupTicker.C {
+			handler.Storage.Cleanup()
+			ffmpeg.CleanupOldContent(config.PrivateHLSStoragePath)
 		}
 	}()
 }
