@@ -1,6 +1,7 @@
 package ffmpeg
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os/exec"
 	"path"
@@ -14,6 +15,7 @@ import (
 )
 
 var _timer *time.Ticker
+var resized = "640:360"
 
 func StopThumbnailGenerator() {
 	if _timer != nil {
@@ -36,7 +38,6 @@ func StartThumbnailGenerator(chunkPath string, variantIndex int) {
 					log.Errorln("Unable to generate thumbnail:", err)
 				}
 			case <-quit:
-				//TODO: evaluate if this is ever stopped
 				log.Debug("thumbnail generator has stopped")
 				_timer.Stop()
 				return
@@ -88,6 +89,8 @@ func fireThumbnailGenerator(segmentPath string, variantIndex int) error {
 		"-i", mostRecentFile, // Input
 		"-f image2",  // format
 		"-vframes 1", // Single frame
+		fmt.Sprintf("-vf \"scale=%s:force_original_aspect_ratio=decrease,pad=%s:(ow-iw)/2:(oh-ih)/2\"", resized, resized),
+
 		outputFile,
 	}
 
@@ -112,7 +115,7 @@ func makeAnimatedGifPreview(sourceFile string, outputFile string) {
 		"-threads 1",     // Low priority processing
 		"-i", sourceFile, // Input
 		"-t 1", // Output is one second in length
-		"-filter_complex", "\"[0:v] fps=8,scale=w=480:h=-1:flags=lanczos,split [a][b];[a] palettegen=stats_mode=full [p];[b][p] paletteuse=new=1\"",
+		fmt.Sprintf("-filter_complex \"[0:v] fps=8,scale=%s:force_original_aspect_ratio=decrease:flags=lanczos,pad=%s:(ow-iw)/2:(oh-ih)/2,split [a][b];[a] palettegen=stats_mode=full [p];[b][p] paletteuse=new=1\"", resized, resized),
 		outputFile,
 	}
 
