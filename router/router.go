@@ -58,12 +58,6 @@ func Start() error {
 	// Disconnect inbound stream
 	http.HandleFunc("/api/admin/disconnect", middleware.RequireAdminAuth(admin.DisconnectInboundConnection))
 
-	// Change the current streaming key in memory
-	http.HandleFunc("/api/admin/changekey", middleware.RequireAdminAuth(admin.ChangeStreamKey))
-
-	// Change the extra page content in memory
-	http.HandleFunc("/api/admin/changeextrapagecontent", middleware.RequireAdminAuth(admin.ChangeExtraPageContent))
-
 	// Server config
 	http.HandleFunc("/api/admin/serverconfig", middleware.RequireAdminAuth(admin.GetServerConfig))
 
@@ -81,6 +75,23 @@ func Start() error {
 
 	// Get warning/error logs
 	http.HandleFunc("/api/admin/logs/warnings", middleware.RequireAdminAuth(admin.GetWarnings))
+
+	// Update config values
+
+	// Change the current streaming key in memory
+	http.HandleFunc("/api/admin/changekey", middleware.RequireAdminAuth(admin.ChangeStreamKey))
+
+	// Change the extra page content in memory
+	http.HandleFunc("/api/admin/changeextrapagecontent", middleware.RequireAdminAuth(admin.ChangeExtraPageContent))
+
+	// Stream title
+	http.HandleFunc("/api/admin/config/streamtitle", middleware.RequireAdminAuth(admin.ChangeStreamTitle))
+
+	// Server name
+	http.HandleFunc("/api/admin/config/name", middleware.RequireAdminAuth(admin.ChangeServerName))
+
+	// Server summary
+	http.HandleFunc("/api/admin/config/serversummary", middleware.RequireAdminAuth(admin.ChangeServerSummary))
 
 	port := config.Config.GetPublicWebServerPort()
 
